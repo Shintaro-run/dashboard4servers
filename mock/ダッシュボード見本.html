@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLM環境ダッシュボード 見本（2段＝列とビューの書式設定まで）</title>
+<style>
+  :root{
+    --bg:#f3f2f1; --panel:#fff; --line:#e1dfdd; --text:#242424; --sub:#616161;
+    --accent:#5b5fc7; --accent-weak:#eff0fb; --warn:#fde7e9; --ok:#dff6dd; --mid:#fff4ce;
+    --red:#c50f1f; --blue:#0f6cbd; --gray:#8a8886; --orange:#c07000; --green:#107c10;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:"Yu Gothic UI","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-size:14px}
+  .note{background:#fff4ce;border-bottom:1px solid #e6d38a;padding:10px 16px;font-size:13px;line-height:1.75}
+  .note b{color:#8a6d00}
+  .page{max-width:1240px;margin:16px auto 40px}
+
+  /* SharePoint のサイトの外枠 */
+  .site{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;
+        box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .sitebar{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--line)}
+  .logo{width:28px;height:28px;border-radius:4px;background:#038387;color:#fff;display:grid;place-items:center;
+        font-weight:700;font-size:12px}
+  .sitenav{display:flex;gap:18px;padding:0 20px;border-bottom:1px solid var(--line);font-size:13px;color:var(--sub)}
+  .sitenav div{padding:8px 0;border-bottom:2px solid transparent}
+  .sitenav div.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .pagehead{padding:18px 20px 4px}
+  .pagehead h1{margin:0;font-size:22px}
+  .pagehead p{margin:4px 0 0;color:var(--sub);font-size:12.5px}
+  .zone{padding:12px 20px 20px}
+
+  /* Web パーツ */
+  .wp{border:1px solid var(--line);border-radius:6px;margin-bottom:16px;overflow:hidden}
+  .wp>header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);
+             background:#fafafa}
+  .wp>header h2{margin:0;font-size:14px}
+  .wp>header .via{color:var(--sub);font-size:11.5px}
+  .wp>header .sp{flex:1}
+  .nojson{background:#f3f2f1;color:#616161;border-radius:3px;padding:1px 6px;font-size:11px}
+  .rules{padding:14px 16px;font-size:13px;line-height:1.95}
+  .rules ol{margin:0;padding-left:1.35em} .rules ol li{margin-bottom:2px}
+  .rules .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .rules h4{margin:0 0 5px;font-size:12px;color:var(--sub)}
+  .two-zone{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .filerow{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f0eeed;font-size:12.5px}
+  .filerow:last-child{border-bottom:none}
+  .fico{width:26px;height:26px;border-radius:3px;display:grid;place-items:center;color:#fff;font-size:10px;
+        font-weight:700;flex:0 0 auto}
+  .fico.w{background:#185abd} .fico.x{background:#107c41} .fico.p{background:#c43e1c}
+  .filerow .fmeta{color:var(--sub);font-size:11px}
+  .person{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #f0eeed}
+  .person:last-child{border-bottom:none}
+  .pav{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:grid;
+       place-items:center;font-size:13px;font-weight:700;flex:0 0 auto}
+  .person .pn{font-size:13px} .person .pr{color:var(--sub);font-size:11.5px}
+  @media (max-width:820px){ .two-zone,.rules .two{grid-template-columns:1fr} }
+  .mark{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;
+        background:var(--accent);color:#fff;font-size:11px;font-weight:700;flex:0 0 auto}
+  .bar-cmd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line)}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  select{border:1px solid var(--line);border-radius:4px;padding:5px 8px;font:inherit;font-size:12.5px;background:#fff}
+
+  /* ギャラリー ビュー */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px;padding:14px}
+  .card{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;
+        box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .card .fig{height:74px;background:#fbfbfd;border-bottom:1px solid var(--line)}
+  .card .in{padding:10px 12px 12px}
+  .card .cid{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--sub)}
+  .card h3{margin:2px 0 8px;font-size:13.5px;line-height:1.5}
+  .pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11.5px}
+  .p-honban{background:var(--warn)} .p-sit{background:var(--mid)} .p-dev{background:#e8f1fb}
+  .s-run{background:var(--ok)} .s-build{background:var(--mid)}
+  .kv{display:grid;grid-template-columns:60px 1fr;gap:2px 8px;font-size:12px;line-height:1.65;color:var(--text)}
+  .kv dt{color:var(--sub)} .kv dd{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;word-break:keep-all;overflow-wrap:anywhere}
+  .age{margin-top:9px;font-size:11.5px;padding:3px 8px;border-radius:3px;display:inline-block}
+  .age.good{background:var(--ok);color:#0b5c0b} .age.warn{background:var(--mid);color:#7a5a00}
+  .age.bad{background:var(--warn);color:#a01020}
+  .cardbtns{display:flex;gap:6px;margin-top:10px}
+  .cardbtns .btn{flex:1;text-align:center}
+
+  /* 時系列（リスト ビュー・rowFormatter） */
+  .tl{padding:0 0 6px}
+  .grp{border-top:1px solid var(--line);background:#f7f7fb;display:grid;grid-template-columns:368px 1fr;
+       align-items:end}
+  .grp:first-child{border-top:none}
+  .grp .g1{padding:8px 12px;font-size:13px;font-weight:600}
+  .grp .g1 .gid{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--sub);margin-right:6px}
+  .grp .g1 .cnt{font-weight:400;color:var(--sub);font-size:11.5px;margin-left:6px}
+  .ruler{position:relative;height:26px;border-left:1px solid var(--line)}
+  .ruler .m{position:absolute;bottom:2px;font-size:10.5px;color:var(--sub);padding-left:3px;
+            border-left:1px solid var(--line);top:6px}
+  .ruler .tdy{position:absolute;top:2px;bottom:0;width:2px;background:var(--red)}
+  .ev{display:grid;grid-template-columns:368px 1fr;border-top:1px solid #f0eeed;align-items:center}
+  .ev:hover{background:#fafafa}
+  .ev .e1{padding:6px 12px 6px 26px;font-size:12.5px;display:flex;align-items:center;gap:7px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ev .track{position:relative;height:34px;border-left:1px solid var(--line)}
+  .ev .track .tdy{position:absolute;top:0;bottom:0;width:2px;background:var(--red);opacity:.35}
+  .band{position:absolute;top:9px;height:16px;border-radius:8px;display:flex;align-items:center;
+        padding:0 7px;font-size:10.5px;color:#fff;white-space:nowrap;overflow:hidden}
+  .t-trouble{background:var(--red)} .t-fix{background:var(--blue)}
+  .t-conf{background:#7160e8} .t-stop{background:var(--orange)}
+  .band.closed{opacity:.45}
+  .after{position:absolute;top:12px;font-size:11px;white-space:nowrap}
+  .dot{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+  .d-trouble{background:var(--red)} .d-fix{background:var(--blue)}
+  .d-conf{background:#7160e8} .d-stop{background:var(--orange)}
+  .state{font-size:10.5px;border:1px solid var(--line);border-radius:3px;padding:0 5px;color:var(--sub);
+         flex:0 0 auto;background:#fff}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:9px 14px;border-top:1px solid var(--line);
+          font-size:11.5px;color:var(--sub)}
+  .legend i{display:inline-block;width:20px;height:9px;border-radius:5px;vertical-align:middle;margin-right:5px}
+
+  /* 表 */
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11.5px;color:var(--sub);background:#fafafa;font-weight:600}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#f3f2f1;padding:1px 4px;border-radius:3px}
+  .cannot{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px 16px;line-height:1.85;font-size:13px}
+  .cannot h2{margin:0 0 8px;font-size:14px}
+  .cannot li{margin-bottom:4px}
+  .hover{position:absolute;z-index:5;background:#fff;border:1px solid var(--line);border-radius:6px;
+         box-shadow:0 4px 16px rgba(0,0,0,.16);padding:10px 12px;font-size:12px;line-height:1.7;width:280px;
+         display:none}
+  @media (max-width:820px){
+    .grp,.ev{grid-template-columns:1fr}
+    .ruler,.ev .track{border-left:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="note">
+  <b>これは見本です。</b>実際の SharePoint の画面ではありません。値と日付はすべて仮のものです。
+  <b>2段（標準のリスト ＋ 列とビューの書式設定）だけで作れる範囲に限って描きました。</b>
+  Power Apps と SPFx は使っていません。だから顧客のテナントの管理者の承認は要りません。
+  Power Automate も使っていません。丸い番号は、その部分を作る SharePoint の機能を指します。番号の一覧は下にあります。
+  <b>触れます。</b>カードの「詳細」「編集」、行の「···」、帯、状態の札を押してみてください。
+</div>
+
+<div class="page">
+<div class="site">
+  <div class="sitebar">
+    <div class="logo">PLM</div>
+    <div>
+      <div style="font-weight:600">AA / BB PLM環境</div>
+      <div style="color:#616161;font-size:12px">SharePoint のチーム サイト</div>
+    </div>
+  </div>
+  <div class="sitenav">
+    <div class="on">ダッシュボード</div><div>環境台帳</div><div>対応の経緯</div><div>ドキュメント</div>
+  </div>
+
+  <div class="pagehead">
+    <h1>PLM環境ダッシュボード</h1>
+    <p>1つのページに、Webパーツを6つ並べています。<b>うち3つがリストです。</b>
+       <b>カードと行を押すと、右からパネルが出ます。</b>
+       追加・編集・削除は、そのパネルの中で行います。<br>
+       客先へ渡すときは、列を絞ったビューを開き、ブラウザの印刷でPDFにします。</p>
+  </div>
+
+  <div class="zone">
+
+    <!-- Web パーツ0（使い方） -->
+    <section class="wp">
+      <header>
+        <span class="mark">6</span>
+        <h2>このページの使い方</h2>
+        <span class="via">テキストのWebパーツ</span>
+        <span class="sp"></span>
+        <span class="nojson">JSONは要りません</span>
+      </header>
+      <div class="rules">
+        <div class="two">
+          <div>
+            <h4>やること</h4>
+            <ol>
+              <li>環境が増えたら、<b>環境台帳に1行足します。</b></li>
+              <li>トラブルか改修が起きたら、<b>対応の経緯に1件足します。</b></li>
+              <li>分からない欄は、<b>空欄のままにします。</b></li>
+            </ol>
+          </div>
+          <div>
+            <h4>書き方の決めごと</h4>
+            <ol>
+              <li>段階は<b>本番・SIT・開発テストの3つ</b>だけです。「運用」と書きません。</li>
+              <li>接続先は<b>相手の環境IDで書きます。</b>名前で書きません。</li>
+              <li>環境IDは<b>一度振ったら変えません。</b>パスワードは<b>どの列にも書きません。</b></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Web パーツ1 -->
+    <section class="wp">
+      <header>
+        <span class="mark">1</span>
+        <h2>環境台帳</h2>
+        <span class="via">リストのWebパーツ／ギャラリー ビュー</span>
+        <span class="sp"></span>
+        <button class="btn primary" id="newEnv">＋ 環境を追加</button>
+      </header>
+      <div class="bar-cmd">
+        <select><option>ビュー：カード（すべて）</option><option>ビュー：表</option><option>ビュー：客先に渡す（列を絞ったもの）</option></select>
+        <select><option>利用組織：すべて</option><option>AA</option><option>BB</option></select>
+        <select><option>段階：すべて</option><option>本番</option><option>SIT</option><option>開発テスト</option></select>
+        <span class="sp"></span>
+        <span style="color:#616161;font-size:11.5px">4 件</span>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <!-- Web パーツ2 -->
+    <section class="wp">
+      <header>
+        <span class="mark">2</span>
+        <h2>対応の経緯（時系列）</h2>
+        <span class="via">リストのWebパーツ／リスト ビュー・環境IDでグループ化</span>
+        <span class="sp"></span>
+        <button class="btn primary" id="newEv">＋ 出来事を記録</button>
+      </header>
+      <div class="bar-cmd">
+        <select id="f-env"><option value="">環境：すべて</option>
+          <option>ENV-001</option><option>ENV-002</option><option>ENV-003</option><option>ENV-004</option></select>
+        <select id="f-kind"><option value="">種類：すべて</option>
+          <option>トラブル</option><option>改修</option><option>構成変更</option><option>停止</option></select>
+        <select id="f-open"><option value="">状態：すべて</option><option>終わっていないものだけ</option></select>
+        <span class="sp"></span>
+        <span class="count" id="cnt" style="color:#616161;font-size:11.5px"></span>
+      </div>
+      <div class="tl" id="tl"></div>
+      <div class="legend">
+        <span><i class="t-trouble"></i>トラブル</span>
+        <span><i class="t-fix"></i>改修</span>
+        <span><i class="t-conf"></i>構成変更</span>
+        <span><i class="t-stop"></i>停止</span>
+        <span>薄い帯＝解決済み</span>
+        <span style="color:var(--red)">赤い線＝今日（2026-09-03）</span>
+        <span>帯にカーソルを当てると、内容と対応が出ます</span>
+      </div>
+    </section>
+
+    <!-- Web パーツ3 -->
+    <section class="wp">
+      <header>
+        <span class="mark">3</span>
+        <h2>手が止まっているもの</h2>
+        <span class="via">リストのWebパーツ／同じリストの別のビュー（絞り込みだけ）</span>
+      </header>
+      <table>
+        <thead><tr><th>環境</th><th>件名</th><th>期日</th><th>遅れ</th><th>担当</th><th style="width:40px"></th></tr></thead>
+        <tbody id="late"></tbody>
+      </table>
+    </section>
+
+
+    <!-- Web パーツ4・5（下段） -->
+    <div class="two-zone">
+      <section class="wp">
+        <header>
+          <span class="mark">7</span>
+          <h2>ドキュメント</h2>
+          <span class="via">ドキュメント ライブラリのWebパーツ</span>
+          <span class="sp"></span>
+          <span class="nojson">JSONは要りません</span>
+        </header>
+        <div>
+          <div class="filerow"><span class="fico w">W</span>
+            <span style="flex:1">環境台帳の使い方.docx<div class="fmeta">作業者 ／ 2026-09-01 更新</div></span></div>
+          <div class="filerow"><span class="fico x">X</span>
+            <span style="flex:1">構築手順_設計PLM.xlsx<div class="fmeta">作業者 ／ 2026-08-14 更新</div></span></div>
+          <div class="filerow"><span class="fico p">P</span>
+            <span style="flex:1">環境構成の説明_202608.pptx<div class="fmeta">運用担当 ／ 2026-08-21 更新</div></span></div>
+        </div>
+      </section>
+
+      <section class="wp">
+        <header>
+          <span class="mark">7</span>
+          <h2>誰に聞くか</h2>
+          <span class="via">人のWebパーツ</span>
+          <span class="sp"></span>
+          <span class="nojson">JSONは要りません</span>
+        </header>
+        <div>
+          <div class="person"><span class="pav">A</span>
+            <span><div class="pn">作業者</div><div class="pr">構築の作業。環境の追加と、リストの設定</div></span></div>
+          <div class="person"><span class="pav" style="background:#0f6cbd">B</span>
+            <span><div class="pn">運用担当</div><div class="pr">運用。稼働中の環境のトラブルと改修</div></span></div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>
+
+<div class="cannot" style="margin-top:16px">
+  <h2>丸い番号の部分を、何で作るのか</h2>
+  <table style="margin:8px 0 14px">
+    <thead><tr><th style="width:26px"></th><th style="width:170px">使う機能</th><th>この見本で何をしているか</th><th style="width:80px">承認</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mark">1</span></td><td>ギャラリー ビューの書式設定（<code>formatter</code>）</td>
+        <td>1件を1枚のカードにする。段階と状態を色の丸で出す。画像の列から構成図の縮小版を出す。最終更新からの日数を計算し、30日を超えたら色を変える。カードのボタンで編集画面を開く</td><td>要らない</td></tr>
+      <tr><td><span class="mark">2</span></td><td>リスト ビューの書式設定（<code>rowFormatter</code>・<code>groupProps</code>）</td>
+        <td>1行を1本の帯にする。帯の左の位置と長さを、発生日と完了日から計算する。環境IDでグループ化し、グループの見出しに月の目盛りと件数を出す。帯にカーソルを当てるとカードで内容を出す</td><td>要らない</td></tr>
+      <tr><td><span class="mark">3</span></td><td>ビューの絞り込みと並べ替え</td>
+        <td>期日が今日より前で、状態が解決ではないものだけを出す。書式設定は使わない</td><td>要らない</td></tr>
+      <tr><td><span class="mark">4</span></td><td>フォームの構成（<code>sections</code>・<code>fieldsettings</code>）</td>
+        <td>詳細と編集のパネルの中身を決める。列をセクションに分け、見出しを付ける。環境IDは直せない列にする。
+            パネルの枠と保存の動きは SharePoint が用意する</td><td>要らない</td></tr>
+      <tr><td><span class="mark">5</span></td><td>行のボタン（<code>customRowAction</code>）</td>
+        <td>行の「···」から詳細・編集・削除を開く。状態は行の中でその場で直す（<code>inlineEditField</code>）。
+            削除の確認とごみ箱は SharePoint の標準の動き</td><td>要らない</td></tr>
+      <tr><td><span class="mark">6</span></td><td>テキストのWebパーツ</td>
+        <td>使い方と書き方の決めごとを、ページの先頭に置く。<b>台帳がだめになる原因は、
+            書き方が人によって変わることなので、規則を画面の中に置く</b></td><td>要らない</td></tr>
+      <tr><td><span class="mark">7</span></td><td>ドキュメント ライブラリと人のWebパーツ</td>
+        <td>手順書の置き場所と、誰に聞けばよいかを同じページに出す。どちらも並べるだけで、JSONが要らない</td>
+        <td>要らない</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2段では、どうしてもできないこと</h2>
+  <ul>
+    <li><b>カードを押して、下の時系列を連動して絞り込むこと。</b>Webパーツ同士をつなぐ標準の仕組みがありません。人が時系列側の「環境」を選び直します</li>
+    <li><b>目盛りを1本だけ上に固定すること。</b>目盛りはグループの見出しごとに描くので、環境の数だけ出ます</li>
+    <li><b>拡大と縮小、帯をつまんで期間を変えること。</b>書式設定は表示だけを変える仕組みで、操作を作れません</li>
+    <li><b>2つのリストをまたいで数えること。</b>環境のカードに「出来事7件」と出せません。件数は時系列の側のグループの見出しに出します</li>
+    <li><b>ビューで列を外しても、権限の制限にはなりません。</b>客先へ渡すPDFからは外せますが、
+        リストを開ける人はほかのビューでその列を見られます。<b>だから、パスワードのような値は
+        どの列にも入れません</b>（機密の保管は今回作りません）</li>
+  </ul>
+
+  <h2>この見本を描く前に、公式文書で確かめたこと</h2>
+  <ul>
+    <li>書式設定で使える要素に <code>svg</code> と <code>path</code> があり、<code>width</code> <code>left</code> <code>position</code> を式で計算できること（書式設定の構文の一覧・2025-08-26 更新）</li>
+    <li>日付の計算に <code>Date()</code> <code>Number()</code> <code>floor</code> <code>addDays</code> <code>@now</code> が使えること。帯の位置を日付から出せます</li>
+    <li>グループの見出しを <code>groupProps</code> の <code>headerFormatter</code> で作り替えられ、<code>@group.count</code> で件数が取れること</li>
+    <li>カーソルを当てたときのカードを <code>customCardProps</code> で作れること。行の中で値を直せる <code>inlineEditField</code> があること</li>
+    <li>行のボタンから <code>editProps</code>（編集を開く）・<code>delete</code>（削除の確認を開く）・
+        <code>openContextMenu</code>（既定のメニューを開く）を呼べること</li>
+    <li>フォームは、ヘッダー・本文・フッターを JSON で構成でき、本文は<b>セクションに列を割り当てる形</b>であること。
+        <b>「ビューを作って管理できる人なら誰でも設定できる」と書かれています</b>（フォームの構成・2026-09-01 更新）</li>
+    <li><code>fieldsettings</code> の <code>readonly</code> で、編集のフォームで直せない列にできること</li>
+    <li><b>注意＝フォームのJSONはリストのコンテンツタイプに保存されます。</b>コンテンツタイプが読み取り専用だと設定が当たりません</li>
+    <li><b>新しい画面のリストのビューは、リスト・コンパクト リスト・ギャラリー・カレンダー・ボードの5つで、ガントは無いこと。</b>ガントは古い画面のプロジェクト タスクのリストの機能です</li>
+  </ul>
+  <div style="color:#616161;font-size:12px;margin-top:8px">
+    出典＝Microsoft Learn「Formatting syntax reference」「Use view formatting to customize SharePoint」
+    「Group customization syntax reference」、Microsoft サポート「Create, change, or delete a view of a list or library」。2026-09-03 に確認しました。
+  </div>
+</div>
+</div>
+
+<div class="hover" id="hv"></div>
+
+<style>
+  /* SharePoint のフォームのパネル */
+  .ovl{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:20}
+  .ovl.on{display:block}
+  .pnl{position:fixed;top:0;right:0;bottom:0;width:540px;max-width:100%;background:#fff;z-index:21;
+       display:none;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.2)}
+  .pnl.on{display:flex}
+  .pnl>.ph{padding:16px 20px 12px;border-bottom:1px solid var(--line)}
+  .pnl>.ph .row1{display:flex;align-items:flex-start;gap:10px}
+  .pnl>.ph h2{margin:0;font-size:17px;line-height:1.45;flex:1}
+  .pnl>.ph .pid{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--sub)}
+  .x{border:none;background:none;font-size:18px;color:var(--sub);cursor:pointer;line-height:1;padding:2px 4px}
+  .x:hover{background:#f3f2f1;border-radius:3px}
+  .pcmd{display:flex;gap:6px;padding:8px 20px;border-bottom:1px solid var(--line);background:#fafafa;
+        flex-wrap:wrap}
+  .pcmd .btn{font-size:12.5px}
+  .btn.danger{color:#a01020;border-color:#f0b8be}
+  .btn.danger:hover{background:var(--warn)}
+  .pb{flex:1;overflow:auto;padding:6px 20px 20px}
+  .sec2{margin-top:16px}
+  .sec2>h3{font-size:12px;color:var(--sub);margin:0 0 8px;font-weight:600;
+           border-bottom:1px solid var(--line);padding-bottom:5px}
+  .fl{margin-bottom:11px}
+  .fl>label{display:block;font-size:12px;color:var(--sub);margin-bottom:3px}
+  .fl input,.fl select,.fl textarea{width:100%;border:1px solid #8a8886;border-radius:2px;padding:6px 8px;
+        font:inherit;font-size:13px;background:#fff}
+  .fl textarea{height:96px;line-height:1.75;resize:vertical}
+  .fl .ro{background:#f3f2f1;border:1px solid var(--line);color:var(--sub);padding:6px 8px;font-size:13px;
+          border-radius:2px}
+  .fl .hint{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.6}
+  .dl{display:grid;grid-template-columns:104px 1fr;gap:5px 12px;font-size:13px;line-height:1.75;margin:0}
+  .dl dt{color:var(--sub)} .dl dd{margin:0;word-break:break-word}
+  .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  .pre{white-space:pre-wrap;line-height:1.85;font-size:13px}
+  .lockbox{background:#faf9f8;border:1px dashed #c8c6c4;border-radius:4px;padding:8px 10px;font-size:12.5px;
+           line-height:1.7}
+  .histlist{font-size:12px;color:var(--sub);line-height:1.9;margin:0;padding-left:1.1em}
+  .pf{border-top:1px solid var(--line);padding:12px 20px;display:flex;gap:8px;background:#fafafa}
+  .whatis{background:var(--accent-weak);border-radius:4px;padding:8px 10px;font-size:11.5px;line-height:1.7;
+          color:#3b3e8f;margin-top:14px}
+  .chip2{display:inline-block;background:var(--accent-weak);color:var(--accent);border-radius:3px;
+         padding:2px 8px;font-size:12px;margin:0 5px 5px 0;font-family:ui-monospace,Menlo,monospace;cursor:pointer}
+  .chip2:hover{background:#e2e3f8}
+  /* 行のメニュー */
+  .rowmenu{position:absolute;z-index:22;background:#fff;border:1px solid var(--line);border-radius:4px;
+           box-shadow:0 4px 14px rgba(0,0,0,.18);padding:4px;display:none;min-width:160px}
+  .rowmenu button{display:block;width:100%;text-align:left;border:none;background:none;font:inherit;
+           font-size:12.5px;padding:7px 10px;cursor:pointer;border-radius:3px}
+  .rowmenu button:hover{background:#f3f2f1}
+  .rowmenu button.del{color:#a01020}
+  .dots{border:1px solid transparent;background:none;color:var(--sub);cursor:pointer;border-radius:3px;
+        font-size:14px;line-height:1;padding:2px 6px}
+  .dots:hover{background:#f3f2f1;border-color:var(--line)}
+  /* 確認のダイアログ */
+  .cf{position:fixed;z-index:23;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;
+      border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.28);width:420px;max-width:92vw;display:none}
+  .cf.on{display:block}
+  .cf h3{margin:0;padding:16px 20px 6px;font-size:16px}
+  .cf p{margin:0;padding:0 20px 16px;font-size:13px;line-height:1.8;color:var(--text)}
+  .cf .pf{border-radius:0 0 6px 6px}
+  .inline-sel{font:inherit;font-size:10.5px;border:1px solid var(--accent);border-radius:3px;padding:0 2px}
+  .state.editable{cursor:pointer}
+  .state.editable:hover{border-color:var(--accent);color:var(--accent)}
+  .ev .e1 .grow{flex:1;overflow:hidden;text-overflow:ellipsis}
+</style>
+
+<div class="ovl" id="ovl" onclick="closeAll()"></div>
+<div class="pnl" id="pnl"></div>
+<div class="rowmenu" id="rm"></div>
+<div class="cf" id="cf"></div>
+
+<script>
+const TODAY="2026-09-03", FROM="2026-06-01", TO="2026-10-11";
+const D=s=>new Date(s+"T00:00:00"), DAY=86400000;
+const SPAN=(D(TO)-D(FROM))/DAY+1;
+const pos=s=>(D(s)-D(FROM))/DAY/SPAN*100;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const nowStamp=()=>TODAY+" 14:30";
+
+let ENVS=[
+ {id:"ENV-001",name:"AA用設計PLM運用環境",org:"AA",sys:"設計PLM",stage:"本番",state:"稼働中",
+  place:"オンプレミス（AA 拠点1）",host:"aa-dplm-p01",ip:"10.20.30.11（仮）",os:"Linux 8.8",mw:"PLM製品 14.2",
+  built:"2024-06",ownerB:"作業者",ownerO:"運用担当",conn:["ENV-004"],days:14,
+  note:"変更は月次のリリース窓（第3土曜の夜間）でしか適用できません。\n接続は社内VPNの経由が必須で、外部からは到達できません。\n設計部門の実データが入っているため、テスト用の投入は禁止されています。",
+  hist:["作業者 が 状態 を「稼働中」に変更（2026-08-20 14:02）","運用担当 が 制約・条件 を更新（2026-07-11 09:35）","作業者 が 項目を作成（2024-06-03 10:12）"]},
+ {id:"ENV-002",name:"BB用生産PLM開発テスト環境",org:"BB",sys:"生産PLM",stage:"開発テスト",state:"構築中",
+  place:"オンプレミス（BB 拠点2）",host:"bb-mplm-d01",ip:"10.40.50.21（仮）",os:"Linux 9.2",mw:"PLM製品 14.3",
+  built:"2026-08",ownerB:"作業者",ownerO:"作業者",conn:["ENV-003"],days:9,
+  note:"データは本番のマスク済み複製を使います。実データの投入は禁止です。\nミドルウェアの版数が本番（14.2）と違うため、動作の差分は必ず記録します。\n夜間はバックアップのため停止します。",
+  hist:["作業者 が 状態 を「構築中」に変更（2026-08-25 11:20）","作業者 が 項目を作成（2026-08-25 11:18）"]},
+ {id:"ENV-003",name:"BB用生産PLM SIT環境",org:"BB",sys:"生産PLM",stage:"SIT",state:"稼働中",
+  place:"オンプレミス（BB 拠点2）",host:"bb-mplm-s01",ip:"10.40.50.31（仮）",os:"Linux 9.2",mw:"PLM製品 14.3",
+  built:"2026-05",ownerB:"作業者",ownerO:"運用担当",conn:["ENV-001","ENV-004"],days:22,
+  note:"結合テストの期間中は、構成の変更を凍結します。\nAA側の2環境へ読み取りだけ接続します。書き込みはできません。\n接続の申請は、AAの情報システム部の承認が要ります（申請から3営業日）。",
+  hist:["運用担当 が 接続先 に ENV-004 を追加（2026-08-12 16:44）","作業者 が 項目を作成（2026-05-14 09:02）"]},
+ {id:"ENV-004",name:"AA用統合PLM本番環境",org:"AA",sys:"統合PLM",stage:"本番",state:"稼働中",
+  place:"オンプレミス（AA 拠点1）",host:"aa-iplm-p01",ip:"10.20.30.41（仮）",os:"Linux 8.8",mw:"PLM製品 14.2",
+  built:"2023-11",ownerB:"（空欄・要確認）",ownerO:"運用担当",conn:["ENV-001","ENV-003"],days:113,
+  note:"停止できるのは年2回の全社メンテナンスの日だけです。\n設計PLM本番と、生産PLMのSITから接続を受けます。\n監査の対象なので、変更の記録を必ず残します。",
+  hist:["運用担当 が 制約・条件 を更新（2026-08-21 10:05）","作業者 が 項目を作成（2023-11-08 13:40）"]}
+];
+
+let EV=[
+ {eid:1,env:"ENV-001",t:"月次リリース後にバッチが2回起動する",k:"トラブル",st:"解決",a:"2026-07-20",b:"2026-08-19",who:"作業者",
+  body:"月次リリースの直後に、夜間バッチが2回起動していました。",fix:"起動の設定が二重になっていたため、片方を止めました。",
+  hist:["作業者 が 状態 を「解決」に変更（2026-08-19 17:40）","作業者 が 項目を作成（2026-07-20 09:12）"]},
+ {eid:2,env:"ENV-001",t:"VPN経由の応答が遅い",k:"トラブル",st:"対応中",a:"2026-08-04",b:"2026-09-18",who:"運用担当",
+  body:"社内VPN経由で画面の表示に10秒以上かかります。",fix:"経路のどこで遅くなっているかを測っています。",
+  hist:["運用担当 が 項目を作成（2026-08-04 10:05）"]},
+ {eid:3,env:"ENV-002",t:"初期構築：ミドルウェアの導入",k:"改修",st:"対応中",a:"2026-08-25",b:"2026-09-26",who:"作業者",
+  body:"PLM製品 14.3 を導入します。",fix:"アプリ層まで終わり、DB層の設定が残っています。",
+  hist:["作業者 が 項目を作成（2026-08-25 11:22）"]},
+ {eid:4,env:"ENV-002",t:"マスク済みデータの受領と投入",k:"改修",st:"新規",a:"2026-08-10",b:"2026-08-31",who:"作業者",
+  body:"本番のマスク済み複製を受け取って投入します。",fix:"まだ着手していません。",
+  hist:["作業者 が 項目を作成（2026-08-10 09:40）"]},
+ {eid:5,env:"ENV-003",t:"SIT第2回の環境リフレッシュ",k:"構成変更",st:"解決",a:"2026-06-29",b:"2026-07-22",who:"作業者",
+  body:"結合テストの第2回に向けて、環境を作り直しました。",fix:"手順を残しました。次回は半日で終わります。",
+  hist:["作業者 が 状態 を「解決」に変更（2026-07-22 18:02）","作業者 が 項目を作成（2026-06-29 08:55）"]},
+ {eid:6,env:"ENV-003",t:"AA側への接続が断続的に切れる",k:"トラブル",st:"対応中",a:"2026-08-24",b:"2026-09-08",who:"運用担当",
+  body:"ENV-001 と ENV-004 への読み取り接続が、1日に数回切れます。",fix:"AAの情報システム部に経路の確認を依頼しました。",
+  hist:["運用担当 が 項目を作成（2026-08-24 13:31）"]},
+ {eid:7,env:"ENV-004",t:"監査対応：変更履歴の提出",k:"改修",st:"新規",a:"2026-08-21",b:"2026-09-30",who:"運用担当",
+  body:"監査で、直近1年の変更履歴の提出を求められています。",fix:"まだ着手していません。",
+  hist:["運用担当 が 項目を作成（2026-08-21 10:05）"]}
+];
+let nextEid=8;
+
+const KC={"トラブル":"trouble","改修":"fix","構成変更":"conf","停止":"stop"};
+const KINDS=["トラブル","改修","構成変更","停止"];
+const STATES=["新規","対応中","解決"];
+const pStage=s=>s==="本番"?"p-honban":s==="SIT"?"p-sit":"p-dev";
+const pState=s=>s==="稼働中"?"s-run":"s-build";
+const envOf=id=>ENVS.find(e=>e.id===id);
+const evOf=id=>EV.find(v=>v.eid===id);
+
+/* ---------- 環境一覧（ギャラリー ビュー） ---------- */
+function fig(){return `<svg viewBox="0 0 300 74" width="100%" height="74" xmlns="http://www.w3.org/2000/svg">
+ <rect width="300" height="74" fill="#fbfbfd"/>
+ <rect x="14" y="16" width="76" height="34" rx="4" fill="#eff0fb" stroke="#5b5fc7"/>
+ <text x="52" y="37" font-size="9" text-anchor="middle" fill="#5b5fc7">アプリ層</text>
+ <rect x="112" y="16" width="76" height="34" rx="4" fill="#fff" stroke="#c8c6c4"/>
+ <text x="150" y="37" font-size="9" text-anchor="middle" fill="#242424">DB層</text>
+ <rect x="210" y="16" width="76" height="34" rx="4" fill="#fff" stroke="#c8c6c4"/>
+ <text x="248" y="37" font-size="9" text-anchor="middle" fill="#242424">ファイル</text>
+ <line x1="90" y1="33" x2="112" y2="33" stroke="#8a8886"/><polygon points="112,33 106,30 106,36" fill="#8a8886"/>
+ <line x1="188" y1="33" x2="210" y2="33" stroke="#8a8886"/><polygon points="210,33 204,30 204,36" fill="#8a8886"/>
+ <text x="14" y="66" font-size="8.5" fill="#616161">構成図（画像の列から出します）</text></svg>`}
+
+function cards(){
+  document.getElementById('cards').innerHTML = ENVS.map(e=>{
+    const cl = e.days>90?"bad":e.days>30?"warn":"good";
+    return `<div class="card">
+      <div class="fig">${fig()}</div>
+      <div class="in">
+        <div style="display:flex;align-items:center">
+          <div class="cid" style="flex:1">${e.id}</div>
+          <button class="dots" title="ほかの操作" onclick="envMenu(event,'${e.id}')">···</button>
+        </div>
+        <h3>${esc(e.name)}</h3>
+        <div class="pills">
+          <span class="pill ${pStage(e.stage)}">${e.stage}</span>
+          <span class="pill ${pState(e.state)}">${e.state}</span>
+          <span class="pill" style="background:#f3f2f1">${e.org}</span>
+        </div>
+        <dl class="kv">
+          <dt>ホスト名</dt><dd>${e.host}</dd>
+          <dt>所在</dt><dd style="font-family:inherit;font-size:12px">${e.place}</dd>
+        </dl>
+        <div class="age ${cl}">最終更新から ${e.days} 日</div>
+        <div class="cardbtns">
+          <button class="btn" onclick="envDetail('${e.id}')">詳細</button>
+          <button class="btn" onclick="envEdit('${e.id}')">編集</button>
+        </div>
+      </div></div>`}).join('');
+}
+
+/* ---------- 出来事の時系列（リスト ビュー） ---------- */
+function ruler(){
+  let m="", c=D(FROM);
+  while(c<=D(TO)){
+    const y=c.getFullYear(), mo=c.getMonth();
+    const last=new Date(y,mo+1,0), end=last<D(TO)?last:D(TO);
+    const w=((end-c)/DAY+1)/SPAN*100;
+    m+=`<div class="m" style="left:${pos(c.toISOString().slice(0,10))}%;width:${w}%">${mo+1}月</div>`;
+    c=new Date(y,mo+1,1);
+  }
+  return `<div class="ruler">${m}<div class="tdy" style="left:${pos(TODAY)}%"></div></div>`;
+}
+
+function tl(){
+  const fe=document.getElementById('f-env').value, fk=document.getElementById('f-kind').value,
+        fo=document.getElementById('f-open').value;
+  let html="", n=0;
+  ENVS.forEach(e=>{
+    if(fe && e.id!==fe) return;
+    const rows=EV.filter(v=>v.env===e.id && (!fk||v.k===fk) && (!fo||v.st!=="解決"));
+    if(!rows.length) return;
+    n+=rows.length;
+    html+=`<div class="grp"><div class="g1"><span class="gid">${e.id}</span>${esc(e.name)}
+        <span class="cnt">${rows.length} 件</span></div>${ruler()}</div>`;
+    rows.forEach(v=>{
+      const l=pos(v.a), w=pos(v.b)-pos(v.a), late=(v.st!=="解決" && v.b<TODAY);
+      const mark = v.st==="解決" ? '✓' : late ? '▲ 期日を過ぎています' : '';
+      html+=`<div class="ev"><div class="e1">
+          <span class="dot d-${KC[v.k]}"></span>
+          <span class="state editable" title="押すとその場で状態を変えられます"
+                onclick="inlineState(event,${v.eid})">${v.st}</span>
+          <span class="grow"><a href="#" onclick="evDetail(${v.eid});return false;"
+                style="color:inherit;text-decoration:none" title="${esc(v.t)}">${esc(v.t)}</a></span>
+          <button class="dots" title="ほかの操作" onclick="evMenu(event,${v.eid})">···</button>
+        </div>
+        <div class="track"><div class="tdy" style="left:${pos(TODAY)}%"></div>
+          <div class="band t-${KC[v.k]} ${v.st==="解決"?"closed":""}" style="left:${l}%;width:${w}%"
+               onclick="evDetail(${v.eid})" data-eid="${v.eid}">${v.k}</div>
+          <div class="after" style="left:calc(${l+w}% + 7px);color:${late?'var(--red)':'#616161'}">${mark}</div>
+        </div></div>`;
+    });
+  });
+  document.getElementById('tl').innerHTML = html ||
+    `<div style="padding:26px;text-align:center;color:#616161">条件に合う出来事がありません。</div>`;
+  document.getElementById('cnt').textContent = `${n} 件 / 全 ${EV.length} 件`;
+  bindHover();
+}
+
+function bindHover(){
+  const hv=document.getElementById('hv');
+  document.querySelectorAll('.band').forEach(b=>{
+    const v=evOf(Number(b.dataset.eid));
+    b.onmouseenter=()=>{
+      hv.innerHTML=`<div style="font-weight:600;margin-bottom:5px">${esc(v.t)}</div>
+        <div style="color:#616161;font-size:11.5px;margin-bottom:6px">${v.a} 〜 ${v.b} ／ 担当 ${v.who}</div>
+        <div><b>内容</b><br>${esc(v.body)}</div>
+        <div style="margin-top:6px"><b>対応したこと</b><br>${esc(v.fix)}</div>
+        <div style="margin-top:7px;color:#616161;font-size:11px">押すと詳細のパネルが開きます</div>`;
+      hv.style.display='block';
+      const r=b.getBoundingClientRect();
+      hv.style.left=Math.min(r.left+window.scrollX, window.innerWidth-300)+'px';
+      hv.style.top=(r.bottom+window.scrollY+7)+'px';
+    };
+    b.onmouseleave=()=>hv.style.display='none';
+  });
+}
+
+/* ---------- 行の中で状態を直す（inlineEditField） ---------- */
+function inlineState(e,eid){
+  e.stopPropagation();
+  const v=evOf(eid), sp=e.currentTarget;
+  sp.outerHTML=`<select class="inline-sel" onchange="setState(${eid},this.value)" onclick="event.stopPropagation()">
+    ${STATES.map(s=>`<option ${s===v.st?'selected':''}>${s}</option>`).join('')}</select>`;
+}
+function setState(eid,val){
+  const v=evOf(eid);
+  if(v.st!==val){ v.st=val; v.hist.unshift(`あなた が 状態 を「${val}」に変更（${nowStamp()}）`); }
+  tl(); late();
+}
+
+/* ---------- 行のメニュー ---------- */
+function menuAt(e,html){
+  e.stopPropagation();
+  const rm=document.getElementById('rm');
+  rm.innerHTML=html; rm.style.display='block';
+  const r=e.currentTarget.getBoundingClientRect();
+  rm.style.left=Math.min(r.left+window.scrollX-120, window.innerWidth-180)+'px';
+  rm.style.top=(r.bottom+window.scrollY+4)+'px';
+}
+function hideMenu(){ document.getElementById('rm').style.display='none'; }
+function evMenu(e,eid){
+  menuAt(e,`<button onclick="hideMenu();evDetail(${eid})">詳細を開く</button>
+    <button onclick="hideMenu();evEdit(${eid})">編集</button>
+    <button class="del" onclick="hideMenu();askDeleteEv(${eid})">削除</button>`);
+}
+function envMenu(e,id){
+  menuAt(e,`<button onclick="hideMenu();envDetail('${id}')">詳細を開く</button>
+    <button onclick="hideMenu();envEdit('${id}')">編集</button>
+    <button onclick="hideMenu();evNew('${id}')">この環境に出来事を記録</button>
+    <button class="del" onclick="hideMenu();askDeleteEnv('${id}')">削除</button>`);
+}
+document.addEventListener('click',ev=>{ if(!ev.target.closest('.rowmenu')&&!ev.target.closest('.dots')) hideMenu(); });
+
+/* ---------- パネル ---------- */
+function openPanel(html){
+  document.getElementById('pnl').innerHTML=html;
+  document.getElementById('pnl').classList.add('on');
+  document.getElementById('ovl').classList.add('on');
+  document.getElementById('hv').style.display='none';
+}
+function closeAll(){
+  document.getElementById('pnl').classList.remove('on');
+  document.getElementById('ovl').classList.remove('on');
+  document.getElementById('cf').classList.remove('on');
+  hideMenu();
+}
+const whatis = t=>`<div class="whatis">${t}</div>`;
+
+function envDetail(id){
+  const e=envOf(id);
+  openPanel(`
+   <div class="ph"><div class="row1"><div style="flex:1">
+      <div class="pid">${e.id}</div><h2>${esc(e.name)}</h2></div>
+      <button class="x" onclick="closeAll()">✕</button></div></div>
+   <div class="pcmd">
+     <button class="btn" onclick="envEdit('${e.id}')">編集</button>
+     <button class="btn" onclick="evNew('${e.id}')">出来事を記録</button>
+     <button class="btn">バージョン履歴</button>
+     <button class="btn">共有</button>
+     <button class="btn danger" onclick="askDeleteEnv('${e.id}')">削除</button>
+   </div>
+   <div class="pb">
+     <div class="sec2"><h3>基本</h3><dl class="dl">
+       <dt>利用組織</dt><dd>${e.org}</dd>
+       <dt>対象システム</dt><dd>${e.sys}</dd>
+       <dt>段階</dt><dd><span class="pill ${pStage(e.stage)}">${e.stage}</span></dd>
+       <dt>状態</dt><dd><span class="pill ${pState(e.state)}">${e.state}</span></dd>
+     </dl></div>
+     <div class="sec2"><h3>置き場所と構成</h3><dl class="dl">
+       <dt>所在</dt><dd>${e.place}</dd>
+       <dt>ホスト名</dt><dd class="mono">${e.host}</dd>
+       <dt>IPアドレス</dt><dd class="mono">${e.ip}</dd>
+       <dt>OS</dt><dd>${e.os}</dd>
+       <dt>ミドルウェア</dt><dd>${e.mw}</dd>
+       <dt>構築時期</dt><dd>${e.built}</dd>
+     </dl></div>
+     <div class="sec2"><h3>接続先</h3>
+       ${e.conn.map(c=>`<span class="chip2" onclick="envDetail('${c}')">${c} ${esc(envOf(c)?envOf(c).name:'')}</span>`).join('')||'<span style="color:#616161;font-size:12.5px">登録されていません。</span>'}
+       <div style="color:#616161;font-size:11.5px;margin-top:6px;line-height:1.7">
+         相手の環境IDで持ちます。名前が変わっても、つながりが壊れません。</div>
+     </div>
+     <div class="sec2"><h3>制約・条件</h3><div class="pre">${esc(e.note)}</div></div>
+     <div class="sec2"><h3>運用の担当</h3><dl class="dl">
+       <dt>担当（構築）</dt><dd>${esc(e.ownerB)}</dd>
+       <dt>担当（運用）</dt><dd>${esc(e.ownerO)}</dd>
+     </dl></div>
+     <div class="sec2"><h3>添付</h3>
+       <figure style="margin:0;border:1px solid var(--line);border-radius:4px;overflow:hidden">
+         ${fig()}<figcaption style="font-size:11.5px;color:#616161;padding:5px 8px;border-top:1px solid var(--line)">
+         ${e.sys}_構成図_v3.png（1.2 MB・2026-08-19 更新）</figcaption></figure>
+     </div>
+     <div class="sec2"><h3>更新の履歴</h3><ul class="histlist">${e.hist.map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>
+     ${whatis('この枠は SharePoint の標準の表示フォームです。並び順とセクションの分け方を <b>フォームの構成</b>（sections）で決めます。枠そのものは作りません。')}
+   </div>`);
+}
+
+function fld(label,inner,hint){
+  return `<div class="fl"><label>${label}</label>${inner}${hint?`<div class="hint">${hint}</div>`:''}</div>`;
+}
+const inp=(id,val)=>`<input id="${id}" value="${esc(val??'')}">`;
+const sel=(id,val,opts)=>`<select id="${id}">${opts.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('')}</select>`;
+const txa=(id,val)=>`<textarea id="${id}">${esc(val??'')}</textarea>`;
+
+function envEdit(id){
+  const e=envOf(id);
+  openPanel(`
+   <div class="ph"><div class="row1"><div style="flex:1">
+     <div class="pid">${e.id}</div><h2>${esc(e.name)}</h2></div>
+     <button class="x" onclick="closeAll()">✕</button></div></div>
+   <div class="pcmd"><span style="font-size:12px;color:var(--sub);padding:5px 0">編集しています</span></div>
+   <div class="pb">
+     <div class="sec2"><h3>基本</h3>
+       ${fld('環境ID','<div class="ro mono">'+e.id+'</div>','一度振ったら変えません。読み取り専用にしてあります（fieldsettings の readonly）')}
+       ${fld('環境名 <span style="color:#a01020">*</span>',inp('f_name',e.name),'現場の呼び名です。変わってよい列です')}
+       ${fld('利用組織 <span style="color:#a01020">*</span>',sel('f_org',e.org,['AA','BB']))}
+       ${fld('対象システム <span style="color:#a01020">*</span>',sel('f_sys',e.sys,['設計PLM','生産PLM','統合PLM']))}
+       ${fld('段階 <span style="color:#a01020">*</span>',sel('f_stage',e.stage,['本番','SIT','開発テスト']),'「運用」は使いません。「本番」でそろえます')}
+       ${fld('状態 <span style="color:#a01020">*</span>',sel('f_state',e.state,['構築中','稼働中','停止','廃止']))}
+     </div>
+     <div class="sec2"><h3>置き場所と構成</h3>
+       ${fld('所在',inp('f_place',e.place))}
+       ${fld('ホスト名',inp('f_host',e.host),'複数あるなら改行で並べます')}
+       ${fld('IPアドレス',inp('f_ip',e.ip))}
+       ${fld('OS',inp('f_os',e.os),'版数まで書きます')}
+       ${fld('ミドルウェア',inp('f_mw',e.mw))}
+       ${fld('構築時期',inp('f_built',e.built),'年月まで分かれば十分です')}
+     </div>
+     <div class="sec2"><h3>つながり</h3>
+       ${fld('接続先',txa('f_conn',e.conn.join('\\n')),'相手の環境IDを1行に1つ書きます。名前で書きません')}
+     </div>
+     <div class="sec2"><h3>運用</h3>
+       ${fld('制約・条件',txa('f_note',e.note),'ここがいちばん価値のある列になります')}
+       ${fld('担当（構築）',inp('f_ob',e.ownerB))}
+       ${fld('担当（運用）',inp('f_oo',e.ownerO))}
+     </div>
+     <div class="sec2"><h3>添付</h3>
+       <button class="btn">ファイルを追加</button>
+       <div class="hint" style="margin-top:6px">構成図やスクリーンショットを添付します</div>
+     </div>
+     ${whatis('セクションの見出しと、どの列をどこに置くかを <b>フォームの構成</b>（sections）で決めます。必須の印、入力の欄、保存の動きは SharePoint が用意します。')}
+   </div>
+   <div class="pf">
+     <button class="btn primary" onclick="envSave('${e.id}')">保存</button>
+     <button class="btn" onclick="envDetail('${e.id}')">キャンセル</button>
+   </div>`);
+}
+
+function envSave(id){
+  const e=envOf(id), g=x=>document.getElementById(x).value;
+  const before={...e};
+  e.name=g('f_name'); e.org=g('f_org'); e.sys=g('f_sys'); e.stage=g('f_stage'); e.state=g('f_state');
+  e.place=g('f_place'); e.host=g('f_host'); e.ip=g('f_ip'); e.os=g('f_os'); e.mw=g('f_mw'); e.built=g('f_built');
+  e.conn=g('f_conn').split('\n').map(s=>s.trim()).filter(Boolean);
+  e.note=g('f_note'); e.ownerB=g('f_ob'); e.ownerO=g('f_oo');
+  const ch=[]; 
+  if(before.state!==e.state) ch.push(`状態 を「${e.state}」に変更`);
+  if(before.note!==e.note) ch.push('制約・条件 を更新');
+  if(before.name!==e.name) ch.push('環境名 を更新');
+  e.hist.unshift(`あなた が ${ch.length?ch.join('、'):'項目'} を更新（${nowStamp()}）`);
+  e.days=0;
+  cards(); tl(); late(); envDetail(id);
+}
+
+function evDetail(eid){
+  const v=evOf(eid), e=envOf(v.env);
+  const late2=(v.st!=="解決" && v.b<TODAY);
+  openPanel(`
+   <div class="ph"><div class="row1"><div style="flex:1">
+     <div class="pid">${v.env} ／ ${e?esc(e.name):''}</div><h2>${esc(v.t)}</h2></div>
+     <button class="x" onclick="closeAll()">✕</button></div></div>
+   <div class="pcmd">
+     <button class="btn" onclick="evEdit(${v.eid})">編集</button>
+     <button class="btn" onclick="setState(${v.eid},'解決');evDetail(${v.eid})">解決にする</button>
+     <button class="btn">バージョン履歴</button>
+     <button class="btn danger" onclick="askDeleteEv(${v.eid})">削除</button>
+   </div>
+   <div class="pb">
+     <div class="sec2"><h3>この出来事</h3><dl class="dl">
+       <dt>環境ID</dt><dd><span class="chip2" onclick="envDetail('${v.env}')">${v.env}</span></dd>
+       <dt>種類</dt><dd><span class="pill" style="background:var(--accent-weak)">${v.k}</span></dd>
+       <dt>状態</dt><dd>${v.st}${late2?' <span style="color:var(--red)">（期日を過ぎています）</span>':''}</dd>
+       <dt>発生日</dt><dd>${v.a}</dd>
+       <dt>完了日</dt><dd>${v.b}</dd>
+       <dt>担当</dt><dd>${esc(v.who)}</dd>
+     </dl></div>
+     <div class="sec2"><h3>内容</h3><div class="pre">${esc(v.body)}</div></div>
+     <div class="sec2"><h3>対応したこと</h3><div class="pre">${esc(v.fix)}</div></div>
+     <div class="sec2"><h3>添付</h3>
+       <div style="font-size:12.5px;color:#616161">画面のスクリーンショットやログを添付します。</div>
+       <button class="btn" style="margin-top:7px">ファイルを追加</button></div>
+     <div class="sec2"><h3>更新の履歴</h3><ul class="histlist">${v.hist.map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>
+     ${whatis('環境IDは <b>参照（Lookup）の列</b>です。環境一覧から選ぶので、書き写しの間違いが起きません。押すと環境の詳細に移ります。')}
+   </div>`);
+}
+
+function evEdit(eid){ evForm(evOf(eid)); }
+function evNew(env){
+  evForm({eid:null,env:env||ENVS[0].id,t:"",k:"トラブル",st:"新規",a:TODAY,b:TODAY,who:"",body:"",fix:"",hist:[]});
+}
+function evForm(v){
+  const isNew = v.eid===null;
+  openPanel(`
+   <div class="ph"><div class="row1"><div style="flex:1">
+     <div class="pid">${isNew?'出来事の新規作成':v.env}</div>
+     <h2>${isNew?'新しい出来事を記録します':esc(v.t)}</h2></div>
+     <button class="x" onclick="closeAll()">✕</button></div></div>
+   <div class="pcmd"><span style="font-size:12px;color:var(--sub);padding:5px 0">
+     ${isNew?'新規のフォームです':'編集しています'}</span></div>
+   <div class="pb">
+     <div class="sec2"><h3>どの環境の話か</h3>
+       ${fld('環境ID <span style="color:#a01020">*</span>',
+          `<select id="e_env">${ENVS.map(e=>`<option value="${e.id}" ${e.id===v.env?'selected':''}>${e.id} ${esc(e.name)}</option>`).join('')}</select>`,
+          '環境一覧から選びます（参照の列）')}
+     </div>
+     <div class="sec2"><h3>内容</h3>
+       ${fld('件名 <span style="color:#a01020">*</span>',inp('e_t',v.t))}
+       ${fld('種類 <span style="color:#a01020">*</span>',sel('e_k',v.k,KINDS))}
+       ${fld('状態 <span style="color:#a01020">*</span>',sel('e_st',v.st,STATES))}
+       ${fld('内容',txa('e_body',v.body),'何が起きたのかを書きます')}
+       ${fld('対応したこと',txa('e_fix',v.fix),'いま分かっている範囲で書きます。空欄でもかまいません')}
+     </div>
+     <div class="sec2"><h3>日付と担当</h3>
+       ${fld('発生日 <span style="color:#a01020">*</span>',`<input type="date" id="e_a" value="${v.a}">`,'時系列の帯の左端になります')}
+       ${fld('完了日（予定でよい）',`<input type="date" id="e_b" value="${v.b}">`,'帯の右端になります。過ぎて解決していないと、赤い印が付きます')}
+       ${fld('担当',inp('e_who',v.who))}
+     </div>
+     <div class="sec2"><h3>添付</h3><button class="btn">ファイルを追加</button></div>
+     ${whatis('帯の位置は、この発生日と完了日から計算します。値を直すと帯が動きます。')}
+   </div>
+   <div class="pf">
+     <button class="btn primary" onclick="evSave(${isNew?'null':v.eid})">保存</button>
+     <button class="btn" onclick="${isNew?'closeAll()':'evDetail('+v.eid+')'}">キャンセル</button>
+   </div>`);
+}
+
+function evSave(eid){
+  const g=x=>document.getElementById(x).value;
+  if(!g('e_t').trim()){ confirmBox('件名が空です','件名は必須の列です。SharePoint も空では保存しません。',
+      [{t:'閉じる',f:'closeAll()'}]); return; }
+  if(g('e_b') < g('e_a')){ confirmBox('日付が逆です','完了日が発生日より前になっています。直してください。',
+      [{t:'閉じる',f:'closeAll()'}]); return; }
+  if(eid===null){
+    const v={eid:nextEid++,env:g('e_env'),t:g('e_t'),k:g('e_k'),st:g('e_st'),a:g('e_a'),b:g('e_b'),
+      who:g('e_who'),body:g('e_body'),fix:g('e_fix'),hist:[`あなた が 項目を作成（${nowStamp()}）`]};
+    EV.push(v); tl(); late(); evDetail(v.eid);
+  }else{
+    const v=evOf(eid), before={...v};
+    v.env=g('e_env'); v.t=g('e_t'); v.k=g('e_k'); v.st=g('e_st'); v.a=g('e_a'); v.b=g('e_b');
+    v.who=g('e_who'); v.body=g('e_body'); v.fix=g('e_fix');
+    const ch=[];
+    if(before.st!==v.st) ch.push(`状態 を「${v.st}」に変更`);
+    if(before.b!==v.b) ch.push('完了日 を更新');
+    if(before.fix!==v.fix) ch.push('対応したこと を更新');
+    v.hist.unshift(`あなた が ${ch.length?ch.join('、'):'項目'} を更新（${nowStamp()}）`);
+    tl(); late(); evDetail(eid);
+  }
+}
+
+/* ---------- 削除の確認 ---------- */
+function confirmBox(title,text,btns){
+  const cf=document.getElementById('cf');
+  cf.innerHTML=`<h3>${title}</h3><p>${text}</p><div class="pf">
+    ${btns.map(b=>`<button class="btn ${b.p?'primary':''} ${b.d?'danger':''}" onclick="${b.f}">${b.t}</button>`).join('')}
+    </div>`;
+  cf.classList.add('on'); document.getElementById('ovl').classList.add('on');
+}
+function askDeleteEv(eid){
+  const v=evOf(eid);
+  confirmBox('この出来事を削除しますか。',
+    `「${esc(v.t)}」（${v.env}）を削除します。<br>削除した項目はサイトのごみ箱に入り、93日は戻せます。`,
+    [{t:'削除',f:`doDeleteEv(${eid})`,d:true},{t:'キャンセル',f:'closeAll()'}]);
+}
+function doDeleteEv(eid){ EV=EV.filter(v=>v.eid!==eid); closeAll(); tl(); late(); }
+function askDeleteEnv(id){
+  const e=envOf(id), n=EV.filter(v=>v.env===id).length;
+  confirmBox('この環境を削除しますか。',
+    `「${esc(e.name)}」（${id}）を削除します。`+
+    (n?`<br><b>この環境には出来事が ${n} 件ひもづいています。出来事は消えません。</b>参照の列が空になります。`:'')+
+    `<br>削除した項目はサイトのごみ箱に入り、93日は戻せます。`,
+    [{t:'削除',f:`doDeleteEnv('${id}')`,d:true},{t:'キャンセル',f:'closeAll()'}]);
+}
+function doDeleteEnv(id){
+  ENVS=ENVS.filter(e=>e.id!==id);
+  ENVS.forEach(e=>e.conn=e.conn.filter(c=>c!==id));
+  closeAll(); cards(); tl(); late();
+}
+
+/* ---------- 手が止まっているもの ---------- */
+function late(){
+  const rows=EV.filter(v=>v.st!=="解決" && v.b<TODAY);
+  document.getElementById('late').innerHTML = rows.length ? rows.map(v=>{
+    const d=Math.round((D(TODAY)-D(v.b))/DAY);
+    return `<tr><td><code>${v.env}</code></td>
+      <td><a href="#" onclick="evDetail(${v.eid});return false;" style="color:var(--accent)">${esc(v.t)}</a></td>
+      <td>${v.b}</td><td style="color:var(--red)">${d} 日</td><td>${esc(v.who)}</td>
+      <td><button class="dots" onclick="evMenu(event,${v.eid})">···</button></td></tr>`}).join('')
+    : `<tr><td colspan="6" style="color:#616161">期日を過ぎたものはありません。</td></tr>`;
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAll(); });
+['f-env','f-kind','f-open'].forEach(id=>document.getElementById(id).addEventListener('input',tl));
+document.getElementById('newEv').onclick=()=>evNew();
+document.getElementById('newEnv').onclick=()=>envDetail(ENVS[0].id);
+cards(); tl(); late();
+</script>
+</body>
+</html>

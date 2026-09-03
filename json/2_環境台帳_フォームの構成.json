@@ -1,0 +1,52 @@
+{
+  "sections": [
+    {
+      "displayname": "基本",
+      "fields": [
+        "環境ID",
+        "環境名",
+        "利用組織",
+        "対象システム",
+        "段階",
+        "状態"
+      ]
+    },
+    {
+      "displayname": "置き場所と構成",
+      "fields": [
+        "所在",
+        "ホスト名",
+        "IPアドレス",
+        "OS",
+        "ミドルウェア",
+        "構築時期"
+      ]
+    },
+    {
+      "displayname": "つながり",
+      "fields": [
+        "接続先"
+      ]
+    },
+    {
+      "displayname": "運用",
+      "fields": [
+        "制約・条件",
+        "担当（構築）",
+        "担当（運用）"
+      ]
+    },
+    {
+      "displayname": "添付",
+      "fields": [
+        "構成図"
+      ]
+    }
+  ],
+  "fieldsettings": [
+    {
+      "name": "Title",
+      "readonly": true
+    }
+  ]
+}

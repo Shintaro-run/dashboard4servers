@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+  "elmType": "div",
+  "txtContent": "@currentField",
+  "style": {
+    "display": "inline-block",
+    "padding": "1px 9px",
+    "border-radius": "10px",
+    "font-size": "12px",
+    "background-color": "=if(@currentField == '解決', '#dff6dd', if(@currentField == '対応中', '#fff4ce', '#f3f2f1'))",
+    "color": "=if(@currentField == '解決', '#0b5c0b', if(@currentField == '対応中', '#7a5a00', '#616161'))"
+  }
+}
