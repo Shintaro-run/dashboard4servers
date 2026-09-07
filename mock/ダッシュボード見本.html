@@ -228,7 +228,7 @@
       <div class="bar-cmd">
         <select id="f-env"><option value="">環境：すべて</option>
           <option>ENV-001</option><option>ENV-002</option><option>ENV-003</option><option>ENV-004</option></select>
-        <select id="f-kind"><option value="">種類：すべて</option>
+        <select id="f-kind"><option value="">区分：すべて</option>
           <option>トラブル</option><option>改修</option><option>構成変更</option><option>停止</option></select>
         <select id="f-open"><option value="">状態：すべて</option><option>終わっていないものだけ</option></select>
         <span class="sp"></span>
@@ -785,7 +785,7 @@ function evDetail(eid){
    <div class="pb">
      <div class="sec2"><h3>この出来事</h3><dl class="dl">
        <dt>環境ID</dt><dd><span class="chip2" onclick="envDetail('${v.env}')">${v.env}</span></dd>
-       <dt>種類</dt><dd><span class="pill" style="background:var(--accent-weak)">${v.k}</span></dd>
+       <dt>区分</dt><dd><span class="pill" style="background:var(--accent-weak)">${v.k}</span></dd>
        <dt>状態</dt><dd>${v.st}${late2?' <span style="color:var(--red)">（期日を過ぎています）</span>':''}</dd>
        <dt>発生日</dt><dd>${v.a}</dd>
        <dt>完了日</dt><dd>${v.b}</dd>
@@ -822,7 +822,7 @@ function evForm(v){
      </div>
      <div class="sec2"><h3>内容</h3>
        ${fld('件名 <span style="color:#a01020">*</span>',inp('e_t',v.t))}
-       ${fld('種類 <span style="color:#a01020">*</span>',sel('e_k',v.k,KINDS))}
+       ${fld('区分 <span style="color:#a01020">*</span>',sel('e_k',v.k,KINDS))}
        ${fld('状態 <span style="color:#a01020">*</span>',sel('e_st',v.st,STATES))}
        ${fld('内容',txa('e_body',v.body),'何が起きたのかを書きます')}
        ${fld('対応したこと',txa('e_fix',v.fix),'いま分かっている範囲で書きます。空欄でもかまいません')}
