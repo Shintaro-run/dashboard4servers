@@ -128,19 +128,6 @@
                 }
               }
             ]
-          },
-          {
-            "elmType": "div",
-            "txtContent": "='最終更新 ' + [$Modified]",
-            "style": {
-              "display": "inline-block",
-              "margin-top": "9px",
-              "padding": "3px 8px",
-              "border-radius": "3px",
-              "font-size": "11.5px",
-              "background-color": "#f3f2f1",
-              "color": "#444444"
-            }
           }
         ]
       },
