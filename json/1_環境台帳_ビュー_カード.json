@@ -131,15 +131,15 @@
           },
           {
             "elmType": "div",
-            "txtContent": "='最終更新から ' + toString(floor((Number(@now) - Number([$Modified])) / 86400000)) + ' 日'",
+            "txtContent": "='最終更新から ' + toString(floor((Number(@now) - Number(Date([$Modified]))) / 86400000)) + ' 日'",
             "style": {
               "display": "inline-block",
               "margin-top": "9px",
               "padding": "3px 8px",
               "border-radius": "3px",
               "font-size": "11.5px",
-              "background-color": "=if(floor((Number(@now) - Number([$Modified])) / 86400000) > 90, '#fde7e9', if(floor((Number(@now) - Number([$Modified])) / 86400000) > 30, '#fff4ce', '#dff6dd'))",
-              "color": "=if(floor((Number(@now) - Number([$Modified])) / 86400000) > 90, '#a01020', if(floor((Number(@now) - Number([$Modified])) / 86400000) > 30, '#7a5a00', '#0b5c0b'))"
+              "background-color": "=if(floor((Number(@now) - Number(Date([$Modified]))) / 86400000) > 90, '#fde7e9', if(floor((Number(@now) - Number(Date([$Modified]))) / 86400000) > 30, '#fff4ce', '#dff6dd'))",
+              "color": "=if(floor((Number(@now) - Number(Date([$Modified]))) / 86400000) > 90, '#a01020', if(floor((Number(@now) - Number(Date([$Modified]))) / 86400000) > 30, '#7a5a00', '#0b5c0b'))"
             }
           }
         ]
